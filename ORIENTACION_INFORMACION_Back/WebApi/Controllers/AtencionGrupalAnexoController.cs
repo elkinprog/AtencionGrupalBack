@@ -1,12 +1,12 @@
 ﻿using Aplicacion.Services;
 using AutoMapper;
 using Dominio.Mapper.AtencionesGrupales;
-using Dominio.Mapper.AtencionesIndividuales;
 using Dominio.Models.AtencionesGrupales;
-using Dominio.Models.AtencionesIndividuales;
 using Microsoft.AspNetCore.Mvc;
+using System.IO.Compression;
 using System.Net;
 using WebApi.Responses;
+using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
 
 namespace WebApi.Controllers
 {
@@ -16,34 +16,40 @@ namespace WebApi.Controllers
     {
         private readonly IGenericService<AtencionGrupalAnexo> _service;
         private readonly IMapper _mapper;
-        public AtencionGrupalAnexoController(IGenericService<AtencionGrupalAnexo> service, IMapper mapper)
+
+        private const string rutaArchivo = @"C:\Users\erojas\3D Objects\AtencionGrupalBack\ORIENTACION_INFORMACION_Back\WebApi\Upload";
+
+        private IHostingEnvironment _hostingEnvironment;
+        public AtencionGrupalAnexoController(IGenericService<AtencionGrupalAnexo> service, IMapper mapper, IHostingEnvironment hostingEnvironment)
         {
             this._service = service;
             this._mapper= mapper;
+            this._hostingEnvironment = hostingEnvironment;
         }
 
 
-
+      
         [HttpGet("GetAnexoCaso")]
         public async Task<ActionResult<IEnumerable<AnexosCasosDTO>>> GetAnexoCaso()
         {
             try
             {
-                    var response = new { Titulo = "Bien Hecho!", Mensaje = "Se encontraron anexos caso", Codigo = HttpStatusCode.OK };
-                    IEnumerable<AtencionGrupalAnexo> AtencionActorModel = null;
+                var response = new { Titulo = "Bien Hecho!", Mensaje = "Se encontraron anexos caso", Codigo = HttpStatusCode.OK };
+                IEnumerable<AtencionGrupalAnexo> AtencionActorModel = null;
 
-                    AtencionActorModel = await _service.GetAsync();
-                    var atencionactorDTO = _mapper.Map<List<AnexosCasosDTO>>(AtencionActorModel);
+                AtencionActorModel = await _service.GetAsync();
+                var atencionactorDTO = _mapper.Map<List<AnexosCasosDTO>>(AtencionActorModel);
 
-                    if (!await _service.ExistsAsync(e => e.Id > 0))
-                    {
-                        response = new { Titulo = "Algo salio mal", Mensaje = "No existen anexos caso", Codigo = HttpStatusCode.Accepted };
-                    }
-                
-                    var listModelResponse = new ListModelResponse<AnexosCasosDTO>(response.Codigo, response.Titulo, response.Mensaje, atencionactorDTO);
-                    return StatusCode((int)listModelResponse.Codigo, listModelResponse);
+                if (!await _service.ExistsAsync(e => e.Id > 0))
+                {
+                    response = new { Titulo = "Algo salio mal", Mensaje = "No existen anexos caso", Codigo = HttpStatusCode.Accepted };
+                }
+
+                var listModelResponse = new ListModelResponse<AnexosCasosDTO>(response.Codigo, response.Titulo, response.Mensaje, atencionactorDTO);
+                return StatusCode((int)listModelResponse.Codigo, listModelResponse);
+
             }
-            
+
             catch (Exception)
             {
                 var response = new { Titulo = "Algo salio mal", Mensaje = "Mostrando anexos caso", Codigo = HttpStatusCode.RequestedRangeNotSatisfiable };
@@ -53,6 +59,34 @@ namespace WebApi.Controllers
            
         }
 
+        [HttpGet("DownloadFile")]
+        public async Task<ActionResult> DownloadFile()
+        {
+            using (var outStreem = new MemoryStream())
+            {
+                using (var archivo = new ZipArchive(outStreem, ZipArchiveMode.Create, true))
+                {
+
+                    foreach (var file in Directory.GetFileSystemEntries(rutaArchivo))
+                    {
+                        var FileInArchivo = archivo.CreateEntry(Path.GetFileName(file), CompressionLevel.Optimal);
+
+                        using (var entryStream = FileInArchivo.Open())
+                        {
+
+                            using (var fileCompressionStream = new MemoryStream(System.IO.File.ReadAllBytes(file)))
+                            {
+                                await fileCompressionStream.CopyToAsync(entryStream);
+                            }
+                        }
+                    }
+                }
+
+                outStreem.Position = 0;
+                return File(outStreem.ToArray(), "application/zip", "Anexos del caso.zip");
+            }
+
+        }
 
 
         [HttpPost("PostAtencionGrupalAnexo")]
@@ -83,7 +117,6 @@ namespace WebApi.Controllers
           
         }
 
-
     }
-    
+
 }

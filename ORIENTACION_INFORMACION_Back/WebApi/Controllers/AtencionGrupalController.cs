@@ -23,7 +23,7 @@ namespace WebApi.Controllers
 
 
         [HttpPost("PostAtencionGrupal")]
-        public async Task<ActionResult> PostAtencionGrupal([FromForm] List<IFormFile> files, [FromForm] AtencionGrupalDTO atenciongrupal)
+        public async Task<ActionResult> PostAtencionGrupal( [FromForm] AtencionGrupalDTO atenciongrupal, [FromForm] List<IFormFile> files)
         {
             var response = new { Titulo = "Bien echo!", Mensaje = "Datos cargados", Codigo = HttpStatusCode.OK};
 
