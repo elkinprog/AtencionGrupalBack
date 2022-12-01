@@ -3,6 +3,7 @@ using AutoMapper;
 using Dominio.Mapper.AtencionesGrupales;
 using Dominio.Models.AtencionesGrupales;
 using Microsoft.AspNetCore.Mvc;
+using System.IO;
 using System.Net;
 
 using WebApi.Responses;
@@ -14,11 +15,13 @@ namespace WebApi.Controllers
     public class AtencionGrupalController : ControllerBase
     {
         private readonly IGenericService<AtencionGrupal> _service;
+        private readonly IGenericService<AtencionGrupalAnexo> _anexo;
         private readonly IMapper _mapper;
-        public AtencionGrupalController(IGenericService<AtencionGrupal> service, IMapper mapper)
+        public AtencionGrupalController(IGenericService<AtencionGrupal> service, IGenericService<AtencionGrupalAnexo> anexo, IMapper mapper)
         {
             this._service = service;
-            this._mapper = mapper;
+            this._mapper  = mapper;
+            this._anexo   = anexo;
         }
 
 
@@ -28,16 +31,24 @@ namespace WebApi.Controllers
             var response = new { Titulo = "Bien echo!", Mensaje = "Datos cargados", Codigo = HttpStatusCode.OK};
 
             try
-            {
-                var atenciongrupalDTO = _mapper.Map<AtencionGrupal>(atenciongrupal);
+            { 
+                AtencionGrupalAnexo atenciongrupalanexo = new AtencionGrupalAnexo();
+          
+
+                AtencionGrupal atenciongrupalDTO = _mapper.Map<AtencionGrupal>(atenciongrupal);
                 atenciongrupalDTO.DtFechaRegistro = DateTime.Now;
 
+
+                //bool grupalanexo = await _anexo.CreateAsync(atenciongrupalanexo);
                 bool guardo = await _service.CreateAsync(atenciongrupalDTO);
+              
 
                 if (!guardo)
                 {
                     response = new { Titulo = "Algo salio mal", Mensaje = "No se pudo guardar atención grupal", Codigo = HttpStatusCode.BadRequest };
                 }
+                var modelResponse = new ModelResponse<AtencionGrupalDTO>(response.Codigo, response.Titulo, response.Mensaje, atenciongrupal);
+                return StatusCode((int)modelResponse.Codigo, modelResponse);
 
 
                 string rutaInicial = Environment.CurrentDirectory;
@@ -46,12 +57,16 @@ namespace WebApi.Controllers
                 var archivoArray = nombreArchivo.Split(".");
                 var extencion = archivoArray[archivoArray.Length - 1];
 
-                FileInfo file = new FileInfo(rutaArchivo);
+                
 
-                //byte[] archivo = System.IO.File.ReadAllBytes(rutaArchivo);
+                //byte[] tamañoArchivo = System.IO.File.ReadAllBytes(rutaArchivo);
 
+                //atenciongrupalanexo.IBytes = tamañoArchivo;
+                //atenciongrupalanexo.VcNombre = nombreArchivo;
 
-                //if (files.Capacity > 1048576)
+                // FileInfo file = new FileInfo(rutaArchivo);
+
+                //if (file.Length > 1048576)
                 //{
                 //    response = new { Titulo = "Algo salio mal", Mensaje = "El archio PDF no debe superar los 2 megabytes", Codigo = HttpStatusCode.BadRequest };
                 //    return StatusCode((int)response.Codigo, response);
@@ -89,9 +104,7 @@ namespace WebApi.Controllers
                response = new { Titulo = "Algo salio mal", Mensaje = "Error cargando el archivo PDf", Codigo = HttpStatusCode.BadRequest };
                 return StatusCode((int)response.Codigo, response);
             }
-           
-            var modelResponse = new ModelResponse<AtencionGrupalDTO>(response.Codigo, response.Titulo, response.Mensaje, atenciongrupal);
-            return StatusCode((int)modelResponse.Codigo, modelResponse);
+          
         }
 
     }

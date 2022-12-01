@@ -19,12 +19,10 @@ namespace WebApi.Controllers
 
         private const string rutaArchivo = @"C:\Users\erojas\3D Objects\AtencionGrupalBack\ORIENTACION_INFORMACION_Back\WebApi\Upload";
 
-        private IHostingEnvironment _hostingEnvironment;
-        public AtencionGrupalAnexoController(IGenericService<AtencionGrupalAnexo> service, IMapper mapper, IHostingEnvironment hostingEnvironment)
+        public AtencionGrupalAnexoController(IGenericService<AtencionGrupalAnexo> service, IMapper mapper)
         {
             this._service = service;
             this._mapper= mapper;
-            this._hostingEnvironment = hostingEnvironment;
         }
 
 
@@ -35,10 +33,14 @@ namespace WebApi.Controllers
             try
             {
                 var response = new { Titulo = "Bien Hecho!", Mensaje = "Se encontraron anexos caso", Codigo = HttpStatusCode.OK };
+
                 IEnumerable<AtencionGrupalAnexo> AtencionActorModel = null;
 
                 AtencionActorModel = await _service.GetAsync();
-                var atencionactorDTO = _mapper.Map<List<AnexosCasosDTO>>(AtencionActorModel);
+         
+                List<AnexosCasosDTO> atencionactorDTO = _mapper.Map<List<AnexosCasosDTO>>(AtencionActorModel);
+                
+                //var atencionactorDTO = _mapper.Map<List<AnexosCasosDTO>>(AtencionActorModel);
 
                 if (!await _service.ExistsAsync(e => e.Id > 0))
                 {
@@ -59,34 +61,7 @@ namespace WebApi.Controllers
            
         }
 
-        [HttpGet("DownloadFile")]
-        public async Task<ActionResult> DownloadFile()
-        {
-            using (var outStreem = new MemoryStream())
-            {
-                using (var archivo = new ZipArchive(outStreem, ZipArchiveMode.Create, true))
-                {
 
-                    foreach (var file in Directory.GetFileSystemEntries(rutaArchivo))
-                    {
-                        var FileInArchivo = archivo.CreateEntry(Path.GetFileName(file), CompressionLevel.Optimal);
-
-                        using (var entryStream = FileInArchivo.Open())
-                        {
-
-                            using (var fileCompressionStream = new MemoryStream(System.IO.File.ReadAllBytes(file)))
-                            {
-                                await fileCompressionStream.CopyToAsync(entryStream);
-                            }
-                        }
-                    }
-                }
-
-                outStreem.Position = 0;
-                return File(outStreem.ToArray(), "application/zip", "Anexos del caso.zip");
-            }
-
-        }
 
 
         [HttpPost("PostAtencionGrupalAnexo")]

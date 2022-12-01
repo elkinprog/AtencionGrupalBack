@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using Dominio.Models.AtencionesGrupales;
 using Persistencia.Repository;
 namespace Aplicacion.Services
 {

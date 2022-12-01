@@ -1,4 +1,6 @@
-﻿namespace Dominio.Models.AtencionesGrupales
+﻿using Dominio.Mapper.AtencionesGrupales;
+
+namespace Dominio.Models.AtencionesGrupales
 {
     public class AtencionGrupal
     {
@@ -14,7 +16,8 @@
         public long     TipoActividadId { get; set; }
         public long     LocalidadId { get; set; }
         public long     VcLugar { get; set; }
-        //public virtual List<AtencionGrupalAnexo> AtencionGrupalesAnexos { get; set; }
+        
         public ICollection <AtencionGrupalAnexo> AtencionGrupalesAnexos { get; set; }
+
     }
 }

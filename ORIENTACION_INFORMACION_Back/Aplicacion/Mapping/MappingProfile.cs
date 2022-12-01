@@ -11,11 +11,11 @@ namespace Aplicacion.Mapping
         {
            
             CreateMap<AtencionGrupal,AtencionGrupalDTO>().ReverseMap();
+
             CreateMap<AtencionGrupalAnexo, AtencionGrupalAnexoDTO>().ReverseMap();
 
             CreateMap<AtencionGrupalAnexo, AnexosCasosDTO>().ReverseMap();
 
-          
         }
     }
 }

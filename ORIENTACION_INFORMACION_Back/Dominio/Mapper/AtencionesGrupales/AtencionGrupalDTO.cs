@@ -13,5 +13,9 @@
         public long     TipoActividadId { get; set; }
         public long     LocalidadId { get; set; }
         public long     VcLugar { get; set; }
+
+        //public IEnumerable<AtencionGrupalAnexoDTO> AtencionGrupal { get; set; }
+        //    = Array.Empty<AtencionGrupalAnexoDTO>();
+
     }
 }
